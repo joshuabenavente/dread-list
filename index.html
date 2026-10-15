@@ -124,27 +124,53 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 
 .film {
   display: grid;
-  grid-template-columns: 64px minmax(0, 1fr);
+  grid-template-columns: 96px minmax(0, 1fr);
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 6px;
   overflow: hidden;
 }
 .film.is-mine { border-color: var(--accent); }
-.stub {
+.poster {
+  position: relative;
+  min-height: 144px;
+  background: var(--ph, #2a2d3a);
+  overflow: hidden;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  padding: 10px 4px;
-  border-right: 1.5px dashed var(--line);
+}
+.poster .ph {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 44px;
+  line-height: 1;
+  letter-spacing: .02em;
+  color: rgba(255, 255, 255, .88);
+  text-transform: uppercase;
+  text-align: center;
+  padding: 8px 8px 30px;
+}
+.poster img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; }
+.poster img.on { opacity: 1; }
+.datechip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 5px;
+  padding: 5px 4px;
+  background: rgba(10, 11, 16, .84);
+  color: #fff;
   font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .08em;
   text-transform: uppercase;
 }
-.stub .mo { font-size: 11px; letter-spacing: .12em; color: var(--muted); }
-.stub .dy { font-family: var(--display); font-weight: 800; font-size: 34px; line-height: 1; font-variant-numeric: tabular-nums; }
-.stub .wd { font-size: 10px; letter-spacing: .1em; color: var(--muted); }
+.datechip b { font-family: var(--display); font-weight: 800; font-size: 20px; letter-spacing: 0; font-variant-numeric: tabular-nums; }
 .body { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; min-width: 0; }
 .film h3 {
   margin: 0;
@@ -161,6 +187,8 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 .tag { display: inline-block; padding: 3px 8px; border-radius: 4px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; }
 .tag.theater { color: var(--theater); background: color-mix(in srgb, var(--theater) 14%, transparent); }
 .tag.stream { color: var(--stream); background: color-mix(in srgb, var(--stream) 14%, transparent); }
+.tag.debut { background: transparent; border: 1px dashed currentColor; padding: 2px 7px; }
+.earlier { margin: 0; font-size: 13px; color: var(--muted); }
 .both { color: var(--accent); font-weight: 500; text-transform: uppercase; letter-spacing: .06em; }
 .blurb { margin: 0; max-width: 62ch; }
 .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-top: 2px; }
@@ -249,13 +277,14 @@ footer p { margin: 0 0 6px; }
 footer button { font: inherit; color: var(--muted); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
 
 @media (max-width: 420px) {
-  .film { grid-template-columns: 54px minmax(0, 1fr); }
-  .stub .dy { font-size: 30px; }
+  .film { grid-template-columns: 84px minmax(0, 1fr); }
+  .poster .ph { font-size: 36px; }
   .film h3 { font-size: 23px; }
   .people { margin-left: 0; }
 }
 @media (prefers-reduced-motion: no-preference) {
   .film, .chipbtn, .interest { transition: border-color .15s, background-color .15s; }
+  .poster img { transition: opacity .25s; }
 }
 </style>
 </head>
@@ -290,6 +319,7 @@ footer button { font: inherit; color: var(--muted); background: none; border: 0;
   <footer>
     <p>Dates compiled October 14, 2026 from studio announcements and release trackers. Smaller releases move, so confirm showtimes before you plan a night.</p>
     <p>Trailer links open a YouTube search for the film.</p>
+    <p id="tmdb-credit" hidden>Posters and film data from TMDB. This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
     <p id="whoami" hidden></p>
   </footer>
 </main>
@@ -301,6 +331,8 @@ footer button { font: inherit; color: var(--muted); background: none; border: 0;
   var SB_URL = 'https://lxmohgpmnefctpprmtzp.supabase.co';
   var SB_KEY = 'sb_publishable_izjrsSX2F1zzzEuypywP5A_bekMhNsr';
   var SLOTS = ['me', 'her'];
+  // Free key from themoviedb.org (Settings > API). Leave empty to show generated posters only.
+  var TMDB_KEY = '';
 
   // kind: "theater" | "stream". Dates are US release dates.
   var FILMS = [
@@ -311,6 +343,7 @@ footer button { font: inherit; color: var(--muted); background: none; border: 0;
     { id: 'resident-evil', title: 'Resident Evil', date: '2026-09-18', where: 'Theaters', kind: 'theater',
       blurb: 'Zach Cregger takes on the game franchise. A medical courier fights through one night of chaos.' },
     { id: 'backrooms', title: 'Backrooms', date: '2026-09-25', where: 'HBO Max', kind: 'stream',
+      debut: true, earlier: 'It played in theaters earlier this year.',
       blurb: 'Kane Parsons’ feature debut with Chiwetel Ejiofor and Renate Reinsve, now streaming.' },
     { id: 'bloody-tennis', title: 'Bloody Tennis', date: '2026-09-25', where: 'Shudder', kind: 'stream',
       blurb: 'Body horror thriller, a Shudder Original.' },
@@ -325,14 +358,17 @@ footer button { font: inherit; color: var(--muted); background: none; border: 0;
     { id: 'vhs-mixtape', title: 'V/H/S/Mixtape', date: '2026-10-09', where: 'Shudder', kind: 'stream',
       blurb: 'The found footage anthology returns, streaming only on Shudder.' },
     { id: 'hokum', title: 'Hokum', date: '2026-10-10', where: 'Hulu', kind: 'stream',
+      debut: true, earlier: 'It played in theaters in May 2026.',
       blurb: 'Damian McCarthy’s gothic supernatural horror with Adam Scott, on Hulu after its theater run.' },
     { id: 'scream-7', title: 'Scream 7', date: '2026-10-16', where: 'Prime Video', kind: 'stream',
+      debut: true, earlier: 'It played in theaters in February 2026.',
       blurb: 'Ghostface is back. Included with a Prime subscription.' },
     { id: 'whalefall', title: 'Whalefall', date: '2026-10-16', where: 'Theaters', kind: 'theater',
       blurb: 'A diver looking for his father’s remains is swallowed by a sperm whale with one hour of oxygen left. Austin Abrams and Josh Brolin star.' },
     { id: 'clayface', title: 'Clayface', date: '2026-10-23', where: 'Theaters', kind: 'theater',
       blurb: 'DC’s body horror origin story for the Batman villain, directed by James Watkins and co-written by Mike Flanagan.' },
     { id: 'the-bride', title: 'The Bride!', date: '2026-10-23', where: 'Prime Video', kind: 'stream',
+      debut: true, earlier: 'It played in theaters earlier this year.',
       blurb: 'Maggie Gyllenhaal’s reimagining of the Bride of Frankenstein.' },
     { id: 'kringles', title: 'Christmas at the Kringles', date: '2026-10-30', where: 'Theaters (limited)', kind: 'theater',
       blurb: 'Horror comedy. A family starts to suspect their Christmas-obsessed neighbors have sinister plans for their son.' },
@@ -385,6 +421,73 @@ footer button { font: inherit; color: var(--muted); background: none; border: 0;
   function showStatus(msg) {
     var s = $('status');
     if (msg) { s.textContent = msg; s.hidden = false; } else { s.hidden = true; }
+  }
+
+  // ---- posters ----
+  var posters = {};
+  try { posters = JSON.parse(localStorage.getItem('dread.posters') || '{}') || {}; } catch (e) { posters = {}; }
+  function savePosters() { try { localStorage.setItem('dread.posters', JSON.stringify(posters)); } catch (e) {} }
+  function hueOf(s) { var h = 0; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360; return h; }
+  function initials(title) {
+    var words = title.replace(/^the\s+/i, '').replace(/[^A-Za-z0-9 \/]/g, '').split(/[ \/]+/).filter(Boolean);
+    if (!words.length) return '?';
+    return (words.length > 1 ? words[0][0] + words[1][0] : words[0].slice(0, 2)).toUpperCase();
+  }
+  function addPosterImg(box, path) {
+    var img = new Image();
+    img.alt = '';
+    img.decoding = 'async';
+    img.addEventListener('load', function () { img.classList.add('on'); });
+    img.src = 'https://image.tmdb.org/t/p/w342' + path;
+    box.insertBefore(img, box.querySelector('.datechip'));
+  }
+  function posterEl(f, dt) {
+    var box = el('div', 'poster');
+    box.id = 'poster-' + f.id;
+    var hue = hueOf(f.id);
+    box.style.setProperty('--ph', 'linear-gradient(160deg, hsl(' + hue + ' 38% 26%), hsl(' + ((hue + 40) % 360) + ' 42% 12%))');
+    box.appendChild(el('span', 'ph', initials(f.title)));
+    var chip = el('div', 'datechip');
+    chip.appendChild(document.createTextNode(MONTHS[dt.getUTCMonth()] + ' '));
+    chip.appendChild(el('b', null, pad(dt.getUTCDate())));
+    box.appendChild(chip);
+    if (posters[f.id] && posters[f.id].p) addPosterImg(box, posters[f.id].p);
+    return box;
+  }
+  var fetching = {};
+  function ensurePosters(films) {
+    if (!TMDB_KEY) return;
+    var keyTag = TMDB_KEY.slice(0, 6);
+    var now = Date.now();
+    var todo = films.filter(function (f) {
+      var c = posters[f.id];
+      if (fetching[f.id]) return false;
+      if (c && c.p) return false;
+      if (c && c.t && c.k === keyTag && now - c.t < 864e5) return false;
+      return true;
+    });
+    var i = 0;
+    function next() {
+      if (i >= todo.length) return;
+      var f = todo[i++];
+      fetching[f.id] = true;
+      var url = 'https://api.themoviedb.org/3/search/movie?api_key=' + encodeURIComponent(TMDB_KEY) +
+        '&include_adult=false&year=' + f.date.slice(0, 4) + '&query=' + encodeURIComponent(f.title);
+      fetch(url).then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      }).then(function (j) {
+        var hit = (j.results || []).filter(function (x) { return x.poster_path; })[0];
+        posters[f.id] = hit ? { p: hit.poster_path } : { t: Date.now(), k: keyTag };
+        savePosters();
+        var box = document.getElementById('poster-' + f.id);
+        if (hit && box && !box.querySelector('img')) addPosterImg(box, hit.poster_path);
+      }).catch(function () {
+        posters[f.id] = { t: Date.now(), k: keyTag };
+        savePosters();
+      }).then(function () { delete fetching[f.id]; next(); });
+    }
+    for (var k = 0; k < 3; k++) next();
   }
 
   // ---- storage (local choice of who this phone is) ----
@@ -575,19 +678,16 @@ footer button { font: inherit; color: var(--muted); background: none; border: 0;
       var dt = new Date(d);
       var art = el('article', 'film' + (isMine ? ' is-mine' : ''));
 
-      var stub = el('div', 'stub');
-      stub.appendChild(el('span', 'mo', MONTHS[dt.getUTCMonth()]));
-      stub.appendChild(el('span', 'dy', pad(dt.getUTCDate())));
-      stub.appendChild(el('span', 'wd', DAYS[dt.getUTCDay()]));
-      art.appendChild(stub);
+      art.appendChild(posterEl(f, dt));
 
       var body = el('div', 'body');
       body.appendChild(el('h3', null, f.title));
       var meta = el('div', 'meta');
-      meta.appendChild(el('span', 'tag ' + f.kind, f.where));
-      meta.appendChild(el('span', null, whenText(Math.round((d - today) / 864e5))));
+      meta.appendChild(el('span', 'tag ' + f.kind + (f.debut ? ' debut' : ''), f.debut ? 'New to ' + f.where : f.where));
+      meta.appendChild(el('span', null, DAYS[dt.getUTCDay()] + ' · ' + whenText(Math.round((d - today) / 864e5))));
       if (n >= 2) meta.appendChild(el('span', 'both', 'Both want'));
       body.appendChild(meta);
+      if (f.debut && f.earlier) body.appendChild(el('p', 'earlier', 'Not a new film. ' + f.earlier));
       body.appendChild(el('p', 'blurb', f.blurb));
 
       var actions = el('div', 'actions');
@@ -620,6 +720,7 @@ footer button { font: inherit; color: var(--muted); background: none; border: 0;
     root.appendChild(section('Coming up', upcoming, state.scope === 'all' ? 'Nothing upcoming in this format.' : 'No upcoming films match yet.'));
     root.appendChild(el('div', 'gap'));
     root.appendChild(section('Recently released', released, state.scope === 'all' ? 'Nothing recent in this format.' : 'No recent films match yet.'));
+    ensurePosters(visible);
   }
 
   function toggle(id) {
@@ -669,6 +770,7 @@ footer button { font: inherit; color: var(--muted); background: none; border: 0;
   }
 
   state.who = getWho();
+  if (TMDB_KEY) $('tmdb-credit').hidden = false;
   bindFilters();
   refresh();
   setInterval(function () { if (!document.hidden) refresh(); }, 10000);
