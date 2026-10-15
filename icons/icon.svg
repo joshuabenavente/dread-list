@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<rect width="512" height="512" fill="#11131a"/>
+<path fill="#ff5a6e" fill-rule="evenodd" d="M 66 112 h 380 a 24 24 0 0 1 24 24 v 240 a 24 24 0 0 1 -24 24 h -380 a 24 24 0 0 1 -24 -24 v -240 a 24 24 0 0 1 24 -24 z M 166 112 a 16 16 0 0 0 0 0 z"/>
+<circle cx="170" cy="112" r="18" fill="#11131a"/>
+<circle cx="170" cy="400" r="18" fill="#11131a"/>
+<path d="M170 140 V372" stroke="#11131a" stroke-width="6" stroke-dasharray="14 12"/>
+<text x="320" y="296" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="150" text-anchor="middle" fill="#11131a">D</text>
+</svg>

@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Dread List</title>
+<meta name="theme-color" content="#eceef2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#11131a" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Dread List">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Hanken+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #eceef2;
+  --surface: #f8f9fb;
+  --fg: #161922;
+  --muted: #565c6e;
+  --line: #cdd1db;
+  --accent: #c8203a;
+  --on-accent: #ffffff;
+  --theater: #9a4a07;
+  --stream: #1a5a9e;
+  --display: 'Big Shoulders Display', 'Arial Narrow', Impact, sans-serif;
+  --body: 'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #11131a;
+    --surface: #1a1d27;
+    --fg: #e9ebf2;
+    --muted: #9ba1b4;
+    --line: #2c3142;
+    --accent: #ff5a6e;
+    --on-accent: #1b0508;
+    --theater: #f2a550;
+    --stream: #79b6f0;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--body);
+  font-size: 15px;
+  line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-top: max(28px, calc(env(safe-area-inset-top, 0px) + 16px));
+  padding-bottom: max(48px, calc(env(safe-area-inset-bottom, 0px) + 24px));
+}
+[hidden] { display: none !important; }
+.wrap { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+
+header { display: flex; flex-direction: column; gap: 8px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+h1 {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: clamp(46px, 13vw, 84px);
+  line-height: .92;
+  letter-spacing: .015em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+.lede { margin: 0; color: var(--muted); max-width: 52ch; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 10px 18px; }
+.group { display: flex; flex-wrap: wrap; gap: 6px; }
+.chipbtn {
+  font: 500 13px/1 var(--body);
+  color: var(--fg);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 9px 14px;
+  min-height: 36px;
+  cursor: pointer;
+}
+.chipbtn[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.matchline {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  font-size: 14px;
+}
+.matchline strong { color: var(--accent); font-weight: 600; }
+.status {
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  color: var(--accent);
+  font-size: 14px;
+}
+
+.section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 8px 0 10px; }
+.section-head h2 {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 28px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.section-head span { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.list { display: flex; flex-direction: column; gap: 10px; }
+.gap { height: 14px; }
+.empty { margin: 0; padding: 18px 14px; border: 1px dashed var(--line); border-radius: 6px; color: var(--muted); }
+
+.film {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.film.is-mine { border-color: var(--accent); }
+.stub {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 10px 4px;
+  border-right: 1.5px dashed var(--line);
+  font-family: var(--mono);
+  text-transform: uppercase;
+}
+.stub .mo { font-size: 11px; letter-spacing: .12em; color: var(--muted); }
+.stub .dy { font-family: var(--display); font-weight: 800; font-size: 34px; line-height: 1; font-variant-numeric: tabular-nums; }
+.stub .wd { font-size: 10px; letter-spacing: .1em; color: var(--muted); }
+.body { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; min-width: 0; }
+.film h3 {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1.05;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.tag { display: inline-block; padding: 3px 8px; border-radius: 4px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; }
+.tag.theater { color: var(--theater); background: color-mix(in srgb, var(--theater) 14%, transparent); }
+.tag.stream { color: var(--stream); background: color-mix(in srgb, var(--stream) 14%, transparent); }
+.both { color: var(--accent); font-weight: 500; text-transform: uppercase; letter-spacing: .06em; }
+.blurb { margin: 0; max-width: 62ch; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-top: 2px; }
+.trailer {
+  color: var(--fg);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: var(--line);
+  text-underline-offset: 3px;
+}
+.people { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; margin-left: auto; }
+.pill {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 3px 8px;
+}
+.interest {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: 600 14px/1 var(--body);
+  color: var(--fg);
+  background: transparent;
+  border: 1.5px solid var(--line);
+  border-radius: 6px;
+  padding: 10px 14px;
+  min-height: 40px;
+  cursor: pointer;
+}
+.interest::before { content: ""; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--muted); }
+.interest[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.interest[aria-pressed="true"]::before { background: var(--on-accent); border-color: var(--on-accent); }
+
+.setup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 16px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+}
+.setup h2 { margin: 0; font-family: var(--display); font-size: 30px; letter-spacing: .03em; text-transform: uppercase; }
+.setup p { margin: 0; color: var(--muted); }
+.setup .row { display: flex; flex-wrap: wrap; gap: 8px; }
+.setup input {
+  font: 500 16px var(--body);
+  color: var(--fg);
+  background: var(--bg);
+  border: 1.5px solid var(--line);
+  border-radius: 6px;
+  padding: 10px 12px;
+  min-height: 44px;
+  flex: 1 1 160px;
+  min-width: 0;
+}
+.setup .primary {
+  font: 600 15px var(--body);
+  color: var(--on-accent);
+  background: var(--accent);
+  border: 0;
+  border-radius: 6px;
+  padding: 11px 16px;
+  min-height: 44px;
+  cursor: pointer;
+}
+.setup .secondary {
+  font: 600 15px var(--body);
+  color: var(--fg);
+  background: transparent;
+  border: 1.5px solid var(--line);
+  border-radius: 6px;
+  padding: 11px 16px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+footer { color: var(--muted); font-size: 13px; max-width: 62ch; }
+footer p { margin: 0 0 6px; }
+footer button { font: inherit; color: var(--muted); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
+
+@media (max-width: 420px) {
+  .film { grid-template-columns: 54px minmax(0, 1fr); }
+  .stub .dy { font-size: 30px; }
+  .film h3 { font-size: 23px; }
+  .people { margin-left: 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .film, .chipbtn, .interest { transition: border-color .15s, background-color .15s; }
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <div class="eyebrow">Horror, planned for two</div>
+    <h1>The Dread List</h1>
+    <p class="lede">New and upcoming horror, in theaters and on streaming. Mark what you want to see and the films you both picked rise to the top.</p>
+  </header>
+
+  <section id="setup" class="setup" hidden aria-label="Choose who you are"></section>
+
+  <div id="app" hidden>
+    <section class="controls" aria-label="Filters">
+      <div class="group" role="group" aria-label="Whose picks">
+        <button type="button" class="chipbtn" id="scope-all" data-scope="all" aria-pressed="true">All</button>
+        <button type="button" class="chipbtn" id="scope-both" data-scope="both" aria-pressed="false">Both want</button>
+        <button type="button" class="chipbtn" id="scope-mine" data-scope="mine" aria-pressed="false">Mine</button>
+      </div>
+      <div class="group" role="group" aria-label="Format">
+        <button type="button" class="chipbtn" id="fmt-any" data-fmt="any" aria-pressed="true">Any</button>
+        <button type="button" class="chipbtn" id="fmt-theater" data-fmt="theater" aria-pressed="false">Theaters</button>
+        <button type="button" class="chipbtn" id="fmt-stream" data-fmt="stream" aria-pressed="false">Streaming</button>
+      </div>
+    </section>
+    <p class="matchline" id="matchline" aria-live="polite" style="margin-top:20px"></p>
+    <p class="status" id="status" role="status" hidden style="margin-top:20px"></p>
+    <div id="sections" style="margin-top:20px"></div>
+  </div>
+
+  <footer>
+    <p>Dates compiled October 14, 2026 from studio announcements and release trackers. Smaller releases move, so confirm showtimes before you plan a night.</p>
+    <p>Trailer links open a YouTube search for the film.</p>
+    <p id="whoami" hidden></p>
+  </footer>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  var SB_URL = 'https://lxmohgpmnefctpprmtzp.supabase.co';
+  var SB_KEY = 'sb_publishable_izjrsSX2F1zzzEuypywP5A_bekMhNsr';
+  var SLOTS = ['me', 'her'];
+
+  // kind: "theater" | "stream". Dates are US release dates.
+  var FILMS = [
+    { id: 'parasomnia', title: 'Parasomnia', date: '2026-09-04', where: 'Shudder', kind: 'stream',
+      blurb: 'Supernatural nightmare horror, one of Shudder’s Season of Screams premieres.' },
+    { id: 'portal-to-hell', title: 'Portal to Hell', date: '2026-09-08', where: 'Digital / VOD', kind: 'stream',
+      blurb: 'Horror comedy with Trey Holland, Keith David and Richard Kind.' },
+    { id: 'resident-evil', title: 'Resident Evil', date: '2026-09-18', where: 'Theaters', kind: 'theater',
+      blurb: 'Zach Cregger takes on the game franchise. A medical courier fights through one night of chaos.' },
+    { id: 'backrooms', title: 'Backrooms', date: '2026-09-25', where: 'HBO Max', kind: 'stream',
+      blurb: 'Kane Parsons’ feature debut with Chiwetel Ejiofor and Renate Reinsve, now streaming.' },
+    { id: 'bloody-tennis', title: 'Bloody Tennis', date: '2026-09-25', where: 'Shudder', kind: 'stream',
+      blurb: 'Body horror thriller, a Shudder Original.' },
+    { id: 'appofeniacs', title: 'Appofeniacs', date: '2026-10-02', where: 'Theaters (limited)', kind: 'theater',
+      blurb: 'A horror satire about AI where deepfake videos lead to chaos and death.' },
+    { id: 'influencer-project', title: 'The Influencer Project', date: '2026-10-02', where: 'Theaters', kind: 'theater',
+      blurb: 'Blair Witch co-creators Eduardo Sánchez and Gregg Hale return to found footage.' },
+    { id: 'ghost-in-the-cell', title: 'Ghost in the Cell', date: '2026-10-02', where: 'Theaters (limited)', kind: 'theater',
+      blurb: 'Joko Anwar’s horror comedy. A supernatural entity tears through a gang-run, high-security prison.' },
+    { id: 'other-mommy', title: 'Other Mommy', date: '2026-10-09', where: 'Theaters', kind: 'theater',
+      blurb: 'Rob Savage directs Jessica Chastain in two roles. A girl is sure something pretending to be her mother lives in her room.' },
+    { id: 'vhs-mixtape', title: 'V/H/S/Mixtape', date: '2026-10-09', where: 'Shudder', kind: 'stream',
+      blurb: 'The found footage anthology returns, streaming only on Shudder.' },
+    { id: 'hokum', title: 'Hokum', date: '2026-10-10', where: 'Hulu', kind: 'stream',
+      blurb: 'Damian McCarthy’s gothic supernatural horror with Adam Scott, on Hulu after its theater run.' },
+    { id: 'scream-7', title: 'Scream 7', date: '2026-10-16', where: 'Prime Video', kind: 'stream',
+      blurb: 'Ghostface is back. Included with a Prime subscription.' },
+    { id: 'whalefall', title: 'Whalefall', date: '2026-10-16', where: 'Theaters', kind: 'theater',
+      blurb: 'A diver looking for his father’s remains is swallowed by a sperm whale with one hour of oxygen left. Austin Abrams and Josh Brolin star.' },
+    { id: 'clayface', title: 'Clayface', date: '2026-10-23', where: 'Theaters', kind: 'theater',
+      blurb: 'DC’s body horror origin story for the Batman villain, directed by James Watkins and co-written by Mike Flanagan.' },
+    { id: 'the-bride', title: 'The Bride!', date: '2026-10-23', where: 'Prime Video', kind: 'stream',
+      blurb: 'Maggie Gyllenhaal’s reimagining of the Bride of Frankenstein.' },
+    { id: 'kringles', title: 'Christmas at the Kringles', date: '2026-10-30', where: 'Theaters (limited)', kind: 'theater',
+      blurb: 'Horror comedy. A family starts to suspect their Christmas-obsessed neighbors have sinister plans for their son.' },
+    { id: 'hunting-matthew-nichols', title: 'Hunting Matthew Nichols', date: '2026-10-31', where: 'Shudder', kind: 'stream',
+      blurb: 'A new Shudder film landing on Halloween.' },
+    { id: 'godzilla-minus-zero', title: 'Godzilla Minus Zero', date: '2026-11-06', where: 'Theaters', kind: 'theater',
+      blurb: 'Takashi Yamazaki’s sequel to Godzilla Minus One, set two years later. Monster movie more than straight horror.' },
+    { id: 'victorian-psycho', title: 'Victorian Psycho', date: '2026-11-13', where: 'Theaters', kind: 'theater',
+      blurb: 'Maika Monroe plays a murderous governess at a remote gothic manor in 1858. Rated R.' },
+    { id: 'werwulf', title: 'Werwulf', date: '2026-12-25', where: 'Theaters', kind: 'theater',
+      blurb: 'Robert Eggers’ werewolf film set in 13th-century England, with Aaron Taylor-Johnson, Lily-Rose Depp and Willem Dafoe.' }
+  ];
+
+  var MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  var DAYS = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+
+  var state = {
+    scope: 'all',
+    fmt: 'any',
+    who: null,                       // 'me' | 'her'
+    names: { me: '', her: '' },
+    picks: { me: new Set(), her: new Set() },
+    loaded: false
+  };
+  var inflight = 0;
+  var chain = Promise.resolve();
+
+  function $(id) { return document.getElementById(id); }
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+  function utcDay(s) { var p = s.split('-'); return Date.UTC(+p[0], +p[1] - 1, +p[2]); }
+  function todayUtc() { var d = new Date(); return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function other() { return state.who === 'me' ? 'her' : 'me'; }
+  function nameOf(slot) { return state.names[slot] || 'Your partner'; }
+  function trailerUrl(f) {
+    return 'https://www.youtube.com/results?search_query=' + encodeURIComponent(f.title + ' official trailer 2026');
+  }
+  function whenText(diff) {
+    if (diff === 0) return 'Opens today';
+    if (diff === 1) return 'Tomorrow';
+    if (diff > 1) return 'In ' + diff + ' days';
+    if (diff === -1) return 'Yesterday';
+    return 'Out ' + (-diff) + ' days ago';
+  }
+  function showStatus(msg) {
+    var s = $('status');
+    if (msg) { s.textContent = msg; s.hidden = false; } else { s.hidden = true; }
+  }
+
+  // ---- storage (local choice of who this phone is) ----
+  function getWho() { try { return localStorage.getItem('dread.who'); } catch (e) { return null; } }
+  function setWho(v) { try { if (v) localStorage.setItem('dread.who', v); else localStorage.removeItem('dread.who'); } catch (e) {} }
+
+  // ---- Supabase REST ----
+  function api(path, opts) {
+    opts = opts || {};
+    opts.headers = Object.assign({ apikey: SB_KEY, 'Content-Type': 'application/json' }, opts.headers || {});
+    return fetch(SB_URL + '/rest/v1/' + path, opts).then(function (r) {
+      if (r.status === 204 || r.status === 201) return null;
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    });
+  }
+  function loadAll() {
+    return Promise.all([
+      api('picks?select=person,film_id'),
+      api('people?select=person,name')
+    ]).then(function (res) {
+      var picks = { me: new Set(), her: new Set() };
+      (res[0] || []).forEach(function (r) { if (picks[r.person]) picks[r.person].add(r.film_id); });
+      var names = { me: '', her: '' };
+      (res[1] || []).forEach(function (r) { if (r.person in names) names[r.person] = r.name; });
+      return { picks: picks, names: names };
+    });
+  }
+  function refresh() {
+    if (inflight > 0) return Promise.resolve();
+    return loadAll().then(function (d) {
+      if (inflight > 0) return;
+      state.picks = d.picks;
+      state.names = d.names;
+      state.loaded = true;
+      showStatus('');
+      route();
+    }).catch(function () {
+      if (!state.loaded) showStatus('Can’t reach the picks server. Check your connection and reopen the app.');
+      else showStatus('Offline. Your picks will sync when you are back online.');
+    });
+  }
+
+  // ---- setup screen ----
+  function renderSetup() {
+    var box = $('setup');
+    box.textContent = '';
+    box.appendChild(el('h2', null, 'Who’s using this phone?'));
+    var named = SLOTS.filter(function (s) { return state.names[s]; });
+    var empty = SLOTS.filter(function (s) { return !state.names[s]; });
+    if (named.length) {
+      box.appendChild(el('p', null, 'Tap your name.'));
+      var row = el('div', 'row');
+      named.forEach(function (s) {
+        var b = el('button', 'secondary', 'I’m ' + state.names[s]);
+        b.type = 'button';
+        b.id = 'who-' + s;
+        b.addEventListener('click', function () { chooseWho(s); });
+        row.appendChild(b);
+      });
+      box.appendChild(row);
+    }
+    if (empty.length) {
+      box.appendChild(el('p', null, named.length ? 'New here? Add your name.' : 'Add your name to get started. Your partner does the same on their phone.'));
+      var row2 = el('div', 'row');
+      var inp = el('input');
+      inp.id = 'newname';
+      inp.type = 'text';
+      inp.maxLength = 30;
+      inp.placeholder = 'Your name';
+      inp.setAttribute('aria-label', 'Your name');
+      inp.autocomplete = 'given-name';
+      var go = el('button', 'primary', 'Join');
+      go.type = 'button';
+      go.id = 'join';
+      function join() {
+        var name = inp.value.trim();
+        if (!name) { inp.focus(); return; }
+        var slot = empty[0];
+        go.disabled = true;
+        api('people?on_conflict=person', {
+          method: 'POST',
+          headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+          body: JSON.stringify({ person: slot, name: name })
+        }).then(function () {
+          state.names[slot] = name;
+          chooseWho(slot);
+        }).catch(function () {
+          go.disabled = false;
+          showStatus('Couldn’t save your name. Check your connection and try again.');
+        });
+      }
+      go.addEventListener('click', join);
+      inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') join(); });
+      row2.appendChild(inp);
+      row2.appendChild(go);
+      box.appendChild(row2);
+    }
+  }
+  function chooseWho(slot) {
+    state.who = slot;
+    setWho(slot);
+    route();
+  }
+  function route() {
+    var inApp = !!(state.who && state.names[state.who]);
+    $('setup').hidden = inApp || !state.loaded;
+    $('app').hidden = !inApp;
+    var w = $('whoami');
+    if (inApp) {
+      w.hidden = false;
+      w.textContent = '';
+      w.appendChild(document.createTextNode('Signed in as ' + state.names[state.who] + '. '));
+      var sw = el('button', null, 'Not you?');
+      sw.type = 'button';
+      sw.id = 'switch';
+      sw.addEventListener('click', function () { state.who = null; setWho(null); route(); });
+      w.appendChild(sw);
+      render();
+    } else {
+      w.hidden = true;
+      if (state.loaded) renderSetup();
+    }
+  }
+
+  // ---- list ----
+  function counts() {
+    var c = {};
+    SLOTS.forEach(function (s) { state.picks[s].forEach(function (id) { c[id] = (c[id] || 0) + 1; }); });
+    return c;
+  }
+
+  function render() {
+    var c = counts();
+    var mine = state.picks[state.who];
+    var theirs = state.picks[other()];
+    var today = todayUtc();
+
+    var both = FILMS.filter(function (f) { return (c[f.id] || 0) >= 2; });
+    $('scope-both').textContent = 'Both want (' + both.length + ')';
+    var ml = $('matchline');
+    ml.textContent = '';
+    if (!mine.size && !theirs.size) {
+      ml.textContent = 'Mark the films you want to see. Matches show up once ' + nameOf(other()) + ' marks theirs too.';
+    } else if (!mine.size) {
+      ml.textContent = nameOf(other()) + ' has picked ' + theirs.size + (theirs.size === 1 ? ' film' : ' films') + '. Mark yours to see the overlap.';
+    } else if (!theirs.size) {
+      ml.textContent = 'Waiting on ' + nameOf(other()) + '’s picks. Matches show up once they mark theirs.';
+    } else if (!both.length) {
+      ml.textContent = 'Nothing in common yet. Keep marking and the overlap will show here.';
+    } else {
+      ml.appendChild(el('strong', null, both.length + (both.length === 1 ? ' film' : ' films') + ' you both want'));
+      ml.appendChild(document.createTextNode(': ' + both.map(function (f) { return f.title; }).join(', ')));
+    }
+
+    var visible = FILMS.filter(function (f) {
+      if (state.fmt === 'theater' && f.kind !== 'theater') return false;
+      if (state.fmt === 'stream' && f.kind !== 'stream') return false;
+      if (state.scope === 'mine' && !mine.has(f.id)) return false;
+      if (state.scope === 'both' && (c[f.id] || 0) < 2) return false;
+      return true;
+    });
+    var upcoming = visible.filter(function (f) { return utcDay(f.date) >= today; })
+      .sort(function (a, b) { return utcDay(a.date) - utcDay(b.date) || a.title.localeCompare(b.title); });
+    var released = visible.filter(function (f) { return utcDay(f.date) < today; })
+      .sort(function (a, b) { return utcDay(b.date) - utcDay(a.date) || a.title.localeCompare(b.title); });
+
+    var root = $('sections');
+    root.textContent = '';
+
+    function section(title, films, emptyText) {
+      var wrap = el('section');
+      var head = el('div', 'section-head');
+      head.appendChild(el('h2', null, title));
+      head.appendChild(el('span', null, films.length + (films.length === 1 ? ' film' : ' films')));
+      wrap.appendChild(head);
+      var list = el('div', 'list');
+      if (!films.length) list.appendChild(el('p', 'empty', emptyText));
+      else films.forEach(function (f) { list.appendChild(card(f)); });
+      wrap.appendChild(list);
+      return wrap;
+    }
+
+    function card(f) {
+      var isMine = mine.has(f.id);
+      var n = c[f.id] || 0;
+      var d = utcDay(f.date);
+      var dt = new Date(d);
+      var art = el('article', 'film' + (isMine ? ' is-mine' : ''));
+
+      var stub = el('div', 'stub');
+      stub.appendChild(el('span', 'mo', MONTHS[dt.getUTCMonth()]));
+      stub.appendChild(el('span', 'dy', pad(dt.getUTCDate())));
+      stub.appendChild(el('span', 'wd', DAYS[dt.getUTCDay()]));
+      art.appendChild(stub);
+
+      var body = el('div', 'body');
+      body.appendChild(el('h3', null, f.title));
+      var meta = el('div', 'meta');
+      meta.appendChild(el('span', 'tag ' + f.kind, f.where));
+      meta.appendChild(el('span', null, whenText(Math.round((d - today) / 864e5))));
+      if (n >= 2) meta.appendChild(el('span', 'both', 'Both want'));
+      body.appendChild(meta);
+      body.appendChild(el('p', 'blurb', f.blurb));
+
+      var actions = el('div', 'actions');
+      var btn = el('button', 'interest', 'Interested');
+      btn.type = 'button';
+      btn.id = 'int-' + f.id;
+      btn.setAttribute('aria-pressed', isMine ? 'true' : 'false');
+      btn.addEventListener('click', function () { toggle(f.id); });
+      actions.appendChild(btn);
+
+      var a = el('a', 'trailer', 'Trailer');
+      a.href = trailerUrl(f);
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      actions.appendChild(a);
+
+      var people = el('div', 'people');
+      SLOTS.forEach(function (s) {
+        if (state.picks[s].has(f.id)) {
+          people.appendChild(el('span', 'pill', s === state.who ? 'You' : nameOf(s)));
+        }
+      });
+      if (people.childNodes.length) actions.appendChild(people);
+
+      body.appendChild(actions);
+      art.appendChild(body);
+      return art;
+    }
+
+    root.appendChild(section('Coming up', upcoming, state.scope === 'all' ? 'Nothing upcoming in this format.' : 'No upcoming films match yet.'));
+    root.appendChild(el('div', 'gap'));
+    root.appendChild(section('Recently released', released, state.scope === 'all' ? 'Nothing recent in this format.' : 'No recent films match yet.'));
+  }
+
+  function toggle(id) {
+    var set = state.picks[state.who];
+    var adding = !set.has(id);
+    if (adding) set.add(id); else set.delete(id);
+    showStatus('');
+    render();
+    var who = state.who;
+    inflight++;
+    chain = chain.then(function () {
+      if (adding) {
+        return api('picks?on_conflict=person,film_id', {
+          method: 'POST',
+          headers: { Prefer: 'resolution=ignore-duplicates,return=minimal' },
+          body: JSON.stringify({ person: who, film_id: id })
+        });
+      }
+      return api('picks?person=eq.' + who + '&film_id=eq.' + encodeURIComponent(id), { method: 'DELETE' });
+    }).catch(function () {
+      var s = state.picks[who];
+      if (adding) s.delete(id); else s.add(id);
+      showStatus('That pick did not save. Check your connection and try again.');
+      render();
+    }).then(function () { inflight--; });
+  }
+
+  function bindFilters() {
+    Array.prototype.forEach.call(document.querySelectorAll('[data-scope]'), function (b) {
+      b.addEventListener('click', function () {
+        state.scope = b.getAttribute('data-scope');
+        Array.prototype.forEach.call(document.querySelectorAll('[data-scope]'), function (x) {
+          x.setAttribute('aria-pressed', x === b ? 'true' : 'false');
+        });
+        render();
+      });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-fmt]'), function (b) {
+      b.addEventListener('click', function () {
+        state.fmt = b.getAttribute('data-fmt');
+        Array.prototype.forEach.call(document.querySelectorAll('[data-fmt]'), function (x) {
+          x.setAttribute('aria-pressed', x === b ? 'true' : 'false');
+        });
+        render();
+      });
+    });
+  }
+
+  state.who = getWho();
+  bindFilters();
+  refresh();
+  setInterval(function () { if (!document.hidden) refresh(); }, 10000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) refresh(); });
+  window.addEventListener('online', refresh);
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+  }
+})();
+</script>
+</body>
+</html>
